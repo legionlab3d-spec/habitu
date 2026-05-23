@@ -8,6 +8,7 @@ const ESTADO_STYLES: Record<Reserva['estado'], { bg: string; text: string; label
   pendiente_pago: { bg: 'bg-[#fff9db]', text: 'text-[#e67700]', label: 'Pendiente pago' },
   confirmada:     { bg: 'bg-[#d3f9d8]', text: 'text-[#2f9e44]', label: 'Confirmada' },
   cancelada:      { bg: 'bg-[#f5f3f3]', text: 'text-[#6f7978]', label: 'Cancelada' },
+  expirada:       { bg: 'bg-[#ffdad6]', text: 'text-[#ba1a1a]', label: 'Expirada' },
 }
 
 function formatFecha(date: string) {

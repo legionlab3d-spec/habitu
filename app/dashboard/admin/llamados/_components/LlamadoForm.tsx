@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useRef, useState } from 'react'
 import { crearLlamado } from '@/app/actions/llamados'
 
 const TIPOS = [
@@ -11,12 +11,50 @@ const TIPOS = [
   { value: 'otro',           label: 'Otro' },
 ]
 
+const MAX_SIZE = 5 * 1024 * 1024 // 5MB
+const ALLOWED = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf']
+
 interface Props {
   apartamentos: { id: string; numero: string; torre: string | null }[]
 }
 
 export default function LlamadoForm({ apartamentos }: Props) {
   const [state, action, pending] = useActionState(crearLlamado, undefined)
+  const [preview, setPreview] = useState<string | 'pdf' | null>(null)
+  const [fileError, setFileError] = useState<string | null>(null)
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    setPreview(null)
+    setFileError(null)
+    if (!file) return
+
+    if (file.size > MAX_SIZE) {
+      setFileError('El archivo no puede superar 5 MB.')
+      e.target.value = ''
+      return
+    }
+    if (!ALLOWED.includes(file.type)) {
+      setFileError('Solo se permiten imágenes (JPG, PNG, WebP) o PDF.')
+      e.target.value = ''
+      return
+    }
+
+    if (file.type === 'application/pdf') {
+      setPreview('pdf')
+    } else {
+      const reader = new FileReader()
+      reader.onload = () => setPreview(reader.result as string)
+      reader.readAsDataURL(file)
+    }
+  }
+
+  function limpiarArchivo() {
+    setPreview(null)
+    setFileError(null)
+    if (fileRef.current) fileRef.current.value = ''
+  }
 
   if (state?.ok) {
     return (
@@ -84,17 +122,73 @@ export default function LlamadoForm({ apartamentos }: Props) {
         />
       </div>
 
+      {/* Evidencia con preview */}
       <div>
-        <label htmlFor="evidencia" className="block text-xs font-semibold text-[#3f4948] uppercase tracking-wide mb-1.5">
-          Evidencia (imagen o PDF)
+        <label className="block text-xs font-semibold text-[#3f4948] uppercase tracking-wide mb-1.5">
+          Evidencia (imagen o PDF, máx. 5 MB)
         </label>
-        <input
-          id="evidencia"
-          name="evidencia"
-          type="file"
-          accept="image/jpeg,image/png,image/webp,application/pdf"
-          className="w-full text-sm text-[#3f4948] file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[#f5f3f3] file:text-[#004746] hover:file:bg-[#bec9c8] cursor-pointer"
-        />
+
+        {!preview ? (
+          <label className="flex items-center gap-3 w-full h-10 px-3 bg-[#f5f3f3] border border-[#bec9c8] rounded-xl cursor-pointer hover:bg-[#efeded] transition-colors">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6f7978" strokeWidth="1.75">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17,8 12,3 7,8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            <span className="text-sm text-[#6f7978]">Seleccionar archivo…</span>
+            <input
+              ref={fileRef}
+              id="evidencia"
+              name="evidencia"
+              type="file"
+              accept="image/jpeg,image/png,image/webp,application/pdf"
+              onChange={handleFile}
+              className="hidden"
+            />
+          </label>
+        ) : (
+          <div className="relative">
+            {preview === 'pdf' ? (
+              <div className="flex items-center gap-3 px-4 py-3 bg-[#f5f3f3] border border-[#bec9c8] rounded-xl">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#004746" strokeWidth="1.75">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14,2 14,8 20,8"/>
+                </svg>
+                <span className="text-sm text-[#3f4948] font-medium">PDF seleccionado</span>
+              </div>
+            ) : (
+              <img
+                src={preview}
+                alt="Preview"
+                className="w-full max-h-48 object-cover rounded-xl border border-[#bec9c8]"
+              />
+            )}
+            <button
+              type="button"
+              onClick={limpiarArchivo}
+              className="absolute top-2 right-2 w-7 h-7 bg-white border border-[#bec9c8] rounded-full flex items-center justify-center text-[#6f7978] hover:text-[#ba1a1a] hover:border-[#ba1a1a] transition-colors"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+            {/* Mantener el input con el archivo seleccionado */}
+            <input
+              ref={fileRef}
+              id="evidencia"
+              name="evidencia"
+              type="file"
+              accept="image/jpeg,image/png,image/webp,application/pdf"
+              onChange={handleFile}
+              className="hidden"
+            />
+          </div>
+        )}
+
+        {fileError && (
+          <p className="text-xs text-[#ba1a1a] mt-1">{fileError}</p>
+        )}
       </div>
 
       {state?.error && (
@@ -104,7 +198,7 @@ export default function LlamadoForm({ apartamentos }: Props) {
       <div className="flex justify-end">
         <button
           type="submit"
-          disabled={pending}
+          disabled={pending || !!fileError}
           className="h-10 px-6 bg-[#08605f] hover:bg-[#004746] text-white text-sm font-semibold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {pending ? 'Creando...' : 'Crear llamado'}
