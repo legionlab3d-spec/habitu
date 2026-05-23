@@ -15,7 +15,7 @@ function StatCard({
   sub?: string
 }) {
   return (
-    <div className="bg-white border border-[#bec9c8] rounded-2xl p-5 flex flex-col justify-between aspect-square">
+    <div className="bg-white border border-[#bec9c8] rounded-2xl p-4 md:p-5 flex flex-col justify-between aspect-square">
       <div className="flex justify-between items-start">
         <span className="text-[#004746]">{icon}</span>
         {sub && (
@@ -26,7 +26,7 @@ function StatCard({
         <p className="text-xs font-semibold text-[#3f4948] uppercase tracking-wider mb-1">
           {label}
         </p>
-        <p className="font-[family-name:var(--font-outfit)] text-4xl font-bold text-[#1b1c1c]">
+        <p className="font-[family-name:var(--font-outfit)] text-3xl md:text-4xl font-bold text-[#1b1c1c]">
           {value}
         </p>
       </div>
@@ -48,13 +48,13 @@ export default async function AdminDashboardPage() {
   const conjunto = (perfil.conjuntos as { nombre: string } | undefined)?.nombre ?? 'Tu conjunto'
 
   return (
-    <div className="p-8 max-w-4xl">
+    <div className="p-4 sm:p-6 md:p-8 max-w-4xl">
       {/* Header */}
-      <div className="mb-8">
-        <p className="text-sm text-[#3f4948] font-medium uppercase tracking-wide mb-1">
+      <div className="mb-6 md:mb-8">
+        <p className="text-xs text-[#3f4948] font-medium uppercase tracking-wide mb-1">
           Panel de Control
         </p>
-        <h1 className="font-[family-name:var(--font-outfit)] text-3xl font-bold text-[#1b1c1c]">
+        <h1 className="font-[family-name:var(--font-outfit)] text-2xl md:text-3xl font-bold text-[#1b1c1c]">
           Hola, {perfil.nombre.split(' ')[0]}!
         </h1>
         <p className="text-[#3f4948] text-sm mt-1">
@@ -63,7 +63,7 @@ export default async function AdminDashboardPage() {
       </div>
 
       {/* Stats 2x2 */}
-      <div className="grid grid-cols-2 gap-4 mb-8 max-w-md">
+      <div className="grid grid-cols-2 gap-3 md:gap-4 mb-6 md:mb-8">
         <StatCard
           label="Apartamentos"
           value={stats.apartamentos}
@@ -113,7 +113,7 @@ export default async function AdminDashboardPage() {
       </div>
 
       {/* Info card */}
-      <div className="bg-[#f5f3f3] border border-[#bec9c8] rounded-2xl p-5 max-w-md">
+      <div className="bg-[#f5f3f3] border border-[#bec9c8] rounded-2xl p-5 max-w-lg">
         <h3 className="font-[family-name:var(--font-outfit)] text-sm font-semibold text-[#1b1c1c] mb-3">
           Información del conjunto
         </h3>

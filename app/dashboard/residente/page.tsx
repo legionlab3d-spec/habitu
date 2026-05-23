@@ -28,13 +28,13 @@ export default async function ResidenteDashboardPage() {
     .limit(3)
 
   return (
-    <div className="p-8 max-w-3xl">
+    <div className="p-4 sm:p-6 md:p-8 max-w-3xl">
       {/* Header */}
-      <div className="mb-8">
-        <p className="text-sm text-[#3f4948] font-medium uppercase tracking-wide mb-1">
+      <div className="mb-6 md:mb-8">
+        <p className="text-xs text-[#3f4948] font-medium uppercase tracking-wide mb-1">
           Residente
         </p>
-        <h1 className="font-[family-name:var(--font-outfit)] text-3xl font-bold text-[#1b1c1c]">
+        <h1 className="font-[family-name:var(--font-outfit)] text-2xl md:text-3xl font-bold text-[#1b1c1c]">
           Hola, {perfil.nombre.split(' ')[0]}!
         </h1>
         <p className="text-[#3f4948] text-sm mt-1">
@@ -43,7 +43,7 @@ export default async function ResidenteDashboardPage() {
       </div>
 
       {/* Stats residente */}
-      <div className="grid grid-cols-2 gap-4 mb-8 max-w-sm">
+      <div className="grid grid-cols-2 gap-3 md:gap-4 mb-6 md:mb-8">
         <div className="bg-white border border-[#bec9c8] rounded-2xl p-5">
           <p className="text-xs font-semibold text-[#3f4948] uppercase tracking-wider mb-1">
             Mis Reservas
@@ -100,7 +100,7 @@ export default async function ResidenteDashboardPage() {
       </div>
 
       {/* Info */}
-      <div className="bg-[#f5f3f3] border border-[#bec9c8] rounded-2xl p-5 mt-6 max-w-sm">
+      <div className="bg-[#f5f3f3] border border-[#bec9c8] rounded-2xl p-5 mt-6">
         <dl className="space-y-2">
           <div className="flex justify-between text-sm">
             <dt className="text-[#3f4948]">Nombre</dt>

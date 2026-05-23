@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/src/lib/supabase-server'
 import { getUsuarioPerfil } from '@/src/services/usuarios'
-import Sidebar from './_components/Sidebar'
+import DashboardShell from './_components/DashboardShell'
 
 export default async function DashboardLayout({
   children,
@@ -19,10 +19,5 @@ export default async function DashboardLayout({
 
   if (!perfil) redirect('/registro-completar')
 
-  return (
-    <div className="flex min-h-screen bg-[#fbf9f8]">
-      <Sidebar perfil={perfil} />
-      <main className="flex-1 overflow-auto">{children}</main>
-    </div>
-  )
+  return <DashboardShell perfil={perfil}>{children}</DashboardShell>
 }

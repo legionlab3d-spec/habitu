@@ -98,9 +98,10 @@ const residenteNav = [
 
 interface SidebarProps {
   perfil: Usuario
+  onClose?: () => void
 }
 
-export default function Sidebar({ perfil }: SidebarProps) {
+export default function Sidebar({ perfil, onClose }: SidebarProps) {
   const pathname = usePathname()
   const navItems = perfil.rol === 'admin' ? adminNav : residenteNav
 
@@ -112,15 +113,29 @@ export default function Sidebar({ perfil }: SidebarProps) {
     .toUpperCase()
 
   return (
-    <aside className="w-60 flex-shrink-0 bg-[#004746] min-h-screen flex flex-col">
+    <aside className="w-60 flex-shrink-0 bg-[#004746] min-h-screen flex flex-col overflow-y-auto">
       {/* Logo */}
-      <div className="px-5 py-5 border-b border-white/10">
-        <span className="font-[family-name:var(--font-outfit)] text-xl font-bold text-white tracking-tight">
-          Habitu
-        </span>
-        <p className="text-xs text-white/50 mt-0.5 truncate">
-          {(perfil.conjuntos as { nombre: string } | undefined)?.nombre ?? ''}
-        </p>
+      <div className="px-5 py-5 border-b border-white/10 flex items-center justify-between gap-2">
+        <div className="min-w-0">
+          <span className="font-[family-name:var(--font-outfit)] text-xl font-bold text-white tracking-tight">
+            Habitu
+          </span>
+          <p className="text-xs text-white/50 mt-0.5 truncate">
+            {(perfil.conjuntos as { nombre: string } | undefined)?.nombre ?? ''}
+          </p>
+        </div>
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="md:hidden text-white/60 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors flex-shrink-0"
+            aria-label="Cerrar menú"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        )}
       </div>
 
       {/* Navigation */}

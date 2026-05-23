@@ -29,12 +29,12 @@ export default async function ComunicadosAdminPage() {
   const comunicados = await getComunicados(supabase, perfil.conjunto_id)
 
   return (
-    <div className="p-8 max-w-3xl">
-      <div className="mb-8">
+    <div className="p-4 sm:p-6 md:p-8 max-w-3xl">
+      <div className="mb-6 md:mb-8">
         <p className="text-xs font-semibold text-[#3f4948] uppercase tracking-wide mb-1">
           Admin · Comunicados
         </p>
-        <h1 className="font-[family-name:var(--font-outfit)] text-3xl font-bold text-[#1b1c1c]">
+        <h1 className="font-[family-name:var(--font-outfit)] text-2xl md:text-3xl font-bold text-[#1b1c1c]">
           Comunicados
         </h1>
         <p className="text-sm text-[#3f4948] mt-1">

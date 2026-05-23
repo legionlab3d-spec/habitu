@@ -8,8 +8,8 @@ export default function ApartamentoForm() {
 
   return (
     <form action={action} className="flex flex-col gap-3">
-      <div className="flex gap-3">
-        <div className="w-32">
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="w-full sm:w-32">
           <label htmlFor="torre" className="block text-xs font-semibold text-[#3f4948] uppercase tracking-wide mb-1.5">
             Torre
           </label>
@@ -36,11 +36,11 @@ export default function ApartamentoForm() {
           />
         </div>
 
-        <div className="flex items-end">
+        <div className="flex items-end sm:flex-shrink-0">
           <button
             type="submit"
             disabled={pending}
-            className="h-10 px-5 bg-[#08605f] hover:bg-[#004746] text-white text-sm font-semibold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+            className="w-full sm:w-auto h-10 px-5 bg-[#08605f] hover:bg-[#004746] text-white text-sm font-semibold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
           >
             {pending ? 'Agregando...' : '+ Agregar'}
           </button>

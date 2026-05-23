@@ -48,7 +48,7 @@ export default function ReservaForm({ zonas }: Props) {
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label htmlFor="fecha" className="block text-xs font-semibold text-[#3f4948] uppercase tracking-wide mb-1.5">
             Fecha <span className="text-[#ba1a1a]">*</span>
