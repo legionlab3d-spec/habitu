@@ -4,6 +4,7 @@ import { getUsuarioPerfil } from '@/src/services/usuarios'
 import { getApartamentos } from '@/src/services/apartamentos'
 import { eliminarApartamento } from '@/app/actions/apartamentos'
 import ApartamentoForm from './_components/ApartamentoForm'
+import GenerarEstructuraForm from './_components/GenerarEstructuraForm'
 
 export default async function ApartamentosPage() {
   const supabase = await createClient()
@@ -41,10 +42,29 @@ export default async function ApartamentosPage() {
         </p>
       </div>
 
-      {/* Formulario agregar */}
+      {/* Generar estructura masiva — destacado si no hay apartamentos */}
+      <div className={`border rounded-2xl p-5 mb-4 ${
+        apartamentos.length === 0
+          ? 'bg-[#004746] border-[#004746]'
+          : 'bg-white border-[#bec9c8]'
+      }`}>
+        <h2 className={`font-[family-name:var(--font-outfit)] text-sm font-semibold mb-1 ${
+          apartamentos.length === 0 ? 'text-white' : 'text-[#1b1c1c]'
+        }`}>
+          Generar estructura del edificio
+        </h2>
+        <p className={`text-xs mb-4 ${
+          apartamentos.length === 0 ? 'text-white/70' : 'text-[#6f7978]'
+        }`}>
+          Crea todos los apartamentos automáticamente a partir de la estructura del conjunto.
+        </p>
+        <GenerarEstructuraForm />
+      </div>
+
+      {/* Formulario agregar individual */}
       <div className="bg-white border border-[#bec9c8] rounded-2xl p-5 mb-6">
         <h2 className="font-[family-name:var(--font-outfit)] text-sm font-semibold text-[#1b1c1c] mb-4">
-          Agregar apartamento
+          Agregar apartamento individual
         </h2>
         <ApartamentoForm />
       </div>

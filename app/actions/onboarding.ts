@@ -76,7 +76,7 @@ export async function registrar(
     return { error: `Error al crear el perfil: ${usuarioError.message}` }
   }
 
-  redirect('/dashboard/admin')
+  redirect('/dashboard/admin/apartamentos')
 }
 
 export async function registrarResidente(
