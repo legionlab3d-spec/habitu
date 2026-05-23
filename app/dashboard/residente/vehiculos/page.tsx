@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/src/lib/supabase-server'
 import { getUsuarioPerfil } from '@/src/services/usuarios'
-import { getMisVehiculos, TIPO_VEHICULO } from '@/src/services/vehiculos'
+import { getMisVehiculos, TIPO_VEHICULO, ESTADO_VEHICULO } from '@/src/services/vehiculos'
 import { desactivarVehiculo } from '@/app/actions/vehiculos'
 import VehiculoForm from './_components/VehiculoForm'
 
@@ -29,6 +29,7 @@ export default async function VehiculosResidentePage() {
         <h1 className="font-[family-name:var(--font-outfit)] text-2xl md:text-3xl font-bold text-[#1b1c1c]">
           Mis Vehículos
         </h1>
+        <p className="text-sm text-[#3f4948] mt-1">Los vehículos nuevos quedan pendientes de aprobación por el administrador.</p>
       </div>
 
       {/* Registrar */}
@@ -46,26 +47,42 @@ export default async function VehiculosResidentePage() {
         </div>
       ) : (
         <div className="flex flex-col gap-2">
-          {lista.map((v) => (
-            <div key={v.id} className="bg-white border border-[#bec9c8] rounded-2xl px-4 py-3 flex items-center justify-between gap-4">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <span className="text-sm font-bold text-[#1b1c1c] font-mono">{v.placa}</span>
-                  <span className="text-[10px] text-[#6f7978] bg-[#f5f3f3] px-2 py-0.5 rounded-full">
-                    {TIPO_VEHICULO[v.tipo]}
-                  </span>
+          {lista.map((v) => {
+            const estadoStyle = ESTADO_VEHICULO[v.estado]
+            return (
+              <div
+                key={v.id}
+                className={`bg-white border border-[#bec9c8] rounded-2xl px-4 py-3 ${v.estado === 'rechazado' ? 'opacity-70' : ''}`}
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      <span className="text-sm font-bold text-[#1b1c1c] font-mono">{v.placa}</span>
+                      <span className="text-[10px] text-[#6f7978] bg-[#f5f3f3] px-2 py-0.5 rounded-full">
+                        {TIPO_VEHICULO[v.tipo]}
+                      </span>
+                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${estadoStyle.bg} ${estadoStyle.text}`}>
+                        {estadoStyle.label}
+                      </span>
+                    </div>
+                    <p className="text-xs text-[#6f7978]">
+                      {[v.marca, v.modelo, v.color].filter(Boolean).join(' · ')}
+                    </p>
+                    {v.estado === 'rechazado' && v.comentarios_admin && (
+                      <p className="text-xs text-[#ba1a1a] mt-1 italic">
+                        Admin: {v.comentarios_admin}
+                      </p>
+                    )}
+                  </div>
+                  <form action={async () => { 'use server'; await desactivarVehiculo(v.id) }}>
+                    <button type="submit" className="text-xs text-[#6f7978] hover:text-[#ba1a1a] transition-colors px-2 py-1.5 rounded-lg hover:bg-[#ffdad6]">
+                      Eliminar
+                    </button>
+                  </form>
                 </div>
-                <p className="text-xs text-[#6f7978]">
-                  {[v.marca, v.modelo, v.color].filter(Boolean).join(' · ')}
-                </p>
               </div>
-              <form action={async () => { 'use server'; await desactivarVehiculo(v.id) }}>
-                <button type="submit" className="text-xs text-[#6f7978] hover:text-[#ba1a1a] transition-colors px-2 py-1.5 rounded-lg hover:bg-[#ffdad6]">
-                  Eliminar
-                </button>
-              </form>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>

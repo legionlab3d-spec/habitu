@@ -9,6 +9,9 @@ export interface Visitante {
   documento: string | null
   placa_vehiculo: string | null
   tipo_visita: 'persona' | 'vehiculo' | 'delivery' | 'servicio'
+  tipo_vehiculo_visitante: 'carro' | 'moto' | null
+  color_vehiculo_visitante: string | null
+  parqueadero_tipo: 'ninguno' | 'propio' | 'visitantes'
   codigo_acceso: string | null
   fecha_expiracion: string | null
   fecha_ingreso: string | null

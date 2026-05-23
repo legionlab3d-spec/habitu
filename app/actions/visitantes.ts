@@ -20,11 +20,44 @@ export async function registrarVisitante(
   const documento = formData.get('documento') as string | null
   const tipo_visita = formData.get('tipo_visita') as string
   const placa_vehiculo = formData.get('placa_vehiculo') as string | null
+  const tipo_vehiculo_visitante = formData.get('tipo_vehiculo_visitante') as string | null
+  const color_vehiculo_visitante = formData.get('color_vehiculo_visitante') as string | null
+  const parqueadero_tipo = (formData.get('parqueadero_tipo') as string) || 'ninguno'
   const observaciones = formData.get('observaciones') as string | null
   const fecha_expiracion_raw = formData.get('fecha_expiracion') as string | null
 
   if (!apartamento_id || !nombre?.trim()) {
     return { error: 'Nombre y apartamento son requeridos.' }
+  }
+
+  // Si el visitante usa vehículo, la placa es obligatoria
+  if (tipo_visita === 'vehiculo' && !placa_vehiculo?.trim()) {
+    return { error: 'La placa del vehículo es requerida.' }
+  }
+
+  // Si elige parqueadero propio, verificar que el residente tenga uno asignado
+  if (parqueadero_tipo === 'propio') {
+    const { data: apto } = await supabase
+      .from('apartamentos')
+      .select('id')
+      .eq('conjunto_id', perfil.conjunto_id)
+      .or(`residente_id.eq.${user.id},propietario_id.eq.${user.id}`)
+      .single()
+
+    if (apto) {
+      const { data: parq } = await supabase
+        .from('parqueaderos')
+        .select('id')
+        .eq('conjunto_id', perfil.conjunto_id)
+        .eq('apartamento_id', apto.id)
+        .eq('activo', true)
+        .limit(1)
+        .single()
+
+      if (!parq) return { error: 'No tienes parqueadero asignado para ceder al visitante.' }
+    } else {
+      return { error: 'No tienes apartamento registrado.' }
+    }
   }
 
   const fecha_expiracion = fecha_expiracion_raw
@@ -38,7 +71,10 @@ export async function registrarVisitante(
     nombre: nombre.trim(),
     documento: documento?.trim() || null,
     tipo_visita,
-    placa_vehiculo: placa_vehiculo?.trim() || null,
+    placa_vehiculo: tipo_visita === 'vehiculo' ? (placa_vehiculo?.trim().toUpperCase() || null) : null,
+    tipo_vehiculo_visitante: tipo_visita === 'vehiculo' ? (tipo_vehiculo_visitante || null) : null,
+    color_vehiculo_visitante: tipo_visita === 'vehiculo' ? (color_vehiculo_visitante?.trim() || null) : null,
+    parqueadero_tipo: tipo_visita === 'vehiculo' ? parqueadero_tipo : 'ninguno',
     observaciones: observaciones?.trim() || null,
     fecha_expiracion,
     activo: true,
