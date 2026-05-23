@@ -53,10 +53,11 @@ export async function generarEstructura(
   const perfil = await getUsuarioPerfil(supabase, user.id)
   if (!perfil || perfil.rol !== 'admin') return { error: 'Sin permisos' }
 
-  const torresRaw = (formData.get('torres') as string).trim()
-  const pisos     = parseInt(formData.get('pisos') as string, 10)
-  const porPiso   = parseInt(formData.get('por_piso') as string, 10)
-  const formato   = formData.get('formato') as string // 'piso100' | 'continuo'
+  const torresRaw  = (formData.get('torres') as string).trim()
+  const pisos      = parseInt(formData.get('pisos') as string, 10)
+  const porPiso    = parseInt(formData.get('por_piso') as string, 10)
+  const formato    = formData.get('formato') as string // 'piso100' | 'continuo'
+  const tipoUnidad = (formData.get('tipo_unidad') as string) || 'apartamento'
 
   if (!pisos || pisos < 1 || pisos > 100) return { error: 'Pisos debe estar entre 1 y 100.' }
   if (!porPiso || porPiso < 1 || porPiso > 50) return { error: 'Apartamentos por piso debe estar entre 1 y 50.' }
@@ -78,7 +79,7 @@ export async function generarEstructura(
     (existentes ?? []).map((a) => `${a.torre ?? ''}|${a.numero}`)
   )
 
-  const nuevos: { conjunto_id: string; torre: string | null; numero: string }[] = []
+  const nuevos: { conjunto_id: string; torre: string | null; numero: string; tipo_unidad: string }[] = []
 
   for (const torre of torres) {
     for (let piso = 1; piso <= pisos; piso++) {
@@ -89,7 +90,7 @@ export async function generarEstructura(
 
         const key = `${torre ?? ''}|${numero}`
         if (!existeSet.has(key)) {
-          nuevos.push({ conjunto_id: perfil.conjunto_id, torre, numero })
+          nuevos.push({ conjunto_id: perfil.conjunto_id, torre, numero, tipo_unidad: tipoUnidad })
         }
       }
     }

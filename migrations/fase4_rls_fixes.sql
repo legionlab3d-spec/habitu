@@ -36,6 +36,7 @@ CREATE POLICY "llamados_select_residente"
 -- ── FIX 2: documentos_conjunto ─────────────────────────────────
 
 DROP POLICY IF EXISTS "documentos_select" ON public.documentos_conjunto;
+DROP POLICY IF EXISTS "documentos_select_residente" ON public.documentos_conjunto;
 
 -- Residentes solo ven documentos marcados como públicos.
 -- Admin siempre ve todos.

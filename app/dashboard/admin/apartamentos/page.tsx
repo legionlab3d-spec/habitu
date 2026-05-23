@@ -58,7 +58,7 @@ export default async function ApartamentosPage() {
         }`}>
           Crea todos los apartamentos automáticamente a partir de la estructura del conjunto.
         </p>
-        <GenerarEstructuraForm />
+        <GenerarEstructuraForm dark={apartamentos.length === 0} />
       </div>
 
       {/* Formulario agregar individual */}
