@@ -79,6 +79,95 @@ export async function registrar(
   redirect('/dashboard/admin')
 }
 
+export async function registrarResidente(
+  _state: { error: string } | undefined,
+  formData: FormData
+) {
+  const nombre      = (formData.get('nombre')      as string).trim()
+  const email       = (formData.get('email')        as string).trim()
+  const password    = (formData.get('password')     as string)
+  const conjuntoId  = (formData.get('conjunto_id')  as string).trim()
+  const numero      = (formData.get('numero')        as string).trim()
+  const torre       = (formData.get('torre')         as string).trim() || null
+
+  if (!nombre || !email || !password || !conjuntoId || !numero) {
+    return { error: 'Todos los campos obligatorios deben completarse' }
+  }
+  if (password.length < 6) {
+    return { error: 'La contraseña debe tener al menos 6 caracteres' }
+  }
+
+  const supabase = await createClient()
+
+  // 1. Verificar que el conjunto existe
+  const { data: conjunto } = await supabase
+    .from('conjuntos')
+    .select('id')
+    .eq('id', conjuntoId)
+    .single()
+
+  if (!conjunto) return { error: 'Conjunto no encontrado. Verifica el ID con tu administrador.' }
+
+  // 2. Buscar el apartamento
+  let aptQuery = supabase
+    .from('apartamentos')
+    .select('id, residente_id')
+    .eq('conjunto_id', conjuntoId)
+    .eq('numero', numero)
+
+  if (torre) {
+    aptQuery = aptQuery.eq('torre', torre)
+  } else {
+    aptQuery = aptQuery.is('torre', null)
+  }
+
+  const { data: apartamentos } = await aptQuery
+
+  if (!apartamentos || apartamentos.length === 0) {
+    return { error: torre
+      ? `Apartamento ${numero} Torre ${torre} no encontrado en este conjunto.`
+      : `Apartamento ${numero} no encontrado en este conjunto.`
+    }
+  }
+
+  const apartamento = apartamentos[0]
+
+  if (apartamento.residente_id) {
+    return { error: 'Este apartamento ya tiene un residente registrado.' }
+  }
+
+  // 3. Crear usuario en Supabase Auth
+  const { data: authData, error: authError } = await supabase.auth.signUp({
+    email,
+    password,
+    options: { data: { nombre } },
+  })
+
+  if (authError) return { error: authError.message }
+  if (!authData.user) return { error: 'No se pudo crear el usuario. El email puede estar en uso.' }
+
+  const userId = authData.user.id
+
+  // 4. Crear perfil de residente
+  const { error: usuarioError } = await supabase.from('usuarios').insert({
+    id:          userId,
+    nombre,
+    email,
+    rol:         'residente',
+    conjunto_id: conjuntoId,
+  })
+
+  if (usuarioError) return { error: `Error al crear el perfil: ${usuarioError.message}` }
+
+  // 5. Vincular apartamento al residente
+  await supabase
+    .from('apartamentos')
+    .update({ residente_id: userId })
+    .eq('id', apartamento.id)
+
+  redirect('/dashboard/residente')
+}
+
 export async function completarPerfil(
   _state: { error: string } | undefined,
   formData: FormData

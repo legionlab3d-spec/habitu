@@ -71,12 +71,20 @@ export default function LoginPage() {
           </form>
         </div>
 
-        <p className="text-center text-sm text-[#3f4948] mt-4">
-          ¿No tienes cuenta?{' '}
-          <Link href="/registro" className="text-[#004746] font-semibold hover:underline">
-            Crear conjunto
-          </Link>
-        </p>
+        <div className="mt-4 flex flex-col gap-1.5 text-center text-sm text-[#3f4948]">
+          <p>
+            ¿Eres administrador?{' '}
+            <Link href="/registro" className="text-[#004746] font-semibold hover:underline">
+              Crear conjunto
+            </Link>
+          </p>
+          <p>
+            ¿Eres residente?{' '}
+            <Link href="/registro/residente" className="text-[#004746] font-semibold hover:underline">
+              Registrarse
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   )
