@@ -19,7 +19,7 @@ export default async function ResidenteDashboardPage() {
   if (!user) redirect('/login')
 
   const perfil = await getUsuarioPerfil(supabase, user.id)
-  if (!perfil || perfil.rol !== 'residente') redirect('/dashboard')
+  if (!perfil || perfil.rol !== 'residente' && perfil.rol !== 'propietario') redirect('/dashboard')
 
   const d = await getResidenteDashboardData(supabase, perfil.conjunto_id, user.id)
   const conjunto = (perfil.conjuntos as { nombre: string } | undefined)?.nombre ?? 'Tu conjunto'

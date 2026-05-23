@@ -440,7 +440,9 @@ export default function Sidebar({ perfil, onClose }: SidebarProps) {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-white truncate">{perfil.nombre}</p>
-            <p className="text-xs text-white/50 capitalize">{perfil.rol}</p>
+            <p className="text-xs text-white/50">
+              {perfil.rol === 'admin' ? 'Administrador' : perfil.rol === 'propietario' ? 'Propietario' : 'Arrendatario'}
+            </p>
           </div>
         </div>
 

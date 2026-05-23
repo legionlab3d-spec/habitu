@@ -83,12 +83,15 @@ export async function registrarResidente(
   _state: { error: string } | undefined,
   formData: FormData
 ) {
-  const nombre      = (formData.get('nombre')      as string).trim()
-  const email       = (formData.get('email')        as string).trim()
-  const password    = (formData.get('password')     as string)
-  const conjuntoId  = (formData.get('conjunto_id')  as string).trim()
-  const numero      = (formData.get('numero')        as string).trim()
-  const torre       = (formData.get('torre')         as string).trim() || null
+  const nombre       = (formData.get('nombre')       as string).trim()
+  const email        = (formData.get('email')         as string).trim()
+  const password     = (formData.get('password')      as string)
+  const conjuntoId   = (formData.get('conjunto_id')   as string).trim()
+  const numero       = (formData.get('numero')         as string).trim()
+  const torre        = (formData.get('torre')          as string).trim() || null
+  const tipoCuenta   = (formData.get('tipo_cuenta')   as string) || 'propietario'
+
+  const esPropietario = tipoCuenta === 'propietario'
 
   if (!nombre || !email || !password || !conjuntoId || !numero) {
     return { error: 'Todos los campos obligatorios deben completarse' }
@@ -111,7 +114,7 @@ export async function registrarResidente(
   // 2. Buscar el apartamento
   let aptQuery = supabase
     .from('apartamentos')
-    .select('id, residente_id')
+    .select('id, propietario_id, residente_id')
     .eq('conjunto_id', conjuntoId)
     .eq('numero', numero)
 
@@ -132,8 +135,11 @@ export async function registrarResidente(
 
   const apartamento = apartamentos[0]
 
-  if (apartamento.residente_id) {
-    return { error: 'Este apartamento ya tiene un residente registrado.' }
+  if (esPropietario && apartamento.propietario_id) {
+    return { error: 'Este apartamento ya tiene un propietario registrado. Contacta al administrador.' }
+  }
+  if (!esPropietario && apartamento.residente_id) {
+    return { error: 'Este apartamento ya tiene un arrendatario registrado. Contacta al administrador.' }
   }
 
   // 3. Crear usuario en Supabase Auth
@@ -148,21 +154,21 @@ export async function registrarResidente(
 
   const userId = authData.user.id
 
-  // 4. Crear perfil de residente
+  // 4. Crear perfil
   const { error: usuarioError } = await supabase.from('usuarios').insert({
     id:          userId,
     nombre,
     email,
-    rol:         'residente',
+    rol:         esPropietario ? 'propietario' : 'residente',
     conjunto_id: conjuntoId,
   })
 
   if (usuarioError) return { error: `Error al crear el perfil: ${usuarioError.message}` }
 
-  // 5. Vincular apartamento al residente
+  // 5. Vincular al apartamento en el campo correspondiente
   await supabase
     .from('apartamentos')
-    .update({ residente_id: userId })
+    .update(esPropietario ? { propietario_id: userId } : { residente_id: userId })
     .eq('id', apartamento.id)
 
   redirect('/dashboard/residente')

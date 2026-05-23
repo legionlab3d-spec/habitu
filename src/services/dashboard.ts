@@ -120,7 +120,7 @@ export async function getResidenteDashboardData(
     .from('apartamentos')
     .select('id, numero, torre')
     .eq('conjunto_id', conjuntoId)
-    .eq('residente_id', usuarioId)
+    .or(`residente_id.eq.${usuarioId},propietario_id.eq.${usuarioId}`)
     .single()
 
   const [estadoCuenta, paquetes, llamados, pqrs, anuncios] = await Promise.all([

@@ -20,6 +20,20 @@ export interface Apartamento {
   created_at: string
 }
 
+export async function getMyApartamento(
+  supabase: SupabaseClient,
+  conjuntoId: string,
+  userId: string
+): Promise<{ id: string; numero: string; torre: string | null } | null> {
+  const { data } = await supabase
+    .from('apartamentos')
+    .select('id, numero, torre')
+    .eq('conjunto_id', conjuntoId)
+    .or(`residente_id.eq.${userId},propietario_id.eq.${userId}`)
+    .single()
+  return data ?? null
+}
+
 export async function getApartamentos(
   supabase: SupabaseClient,
   conjuntoId: string

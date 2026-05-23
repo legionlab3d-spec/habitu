@@ -15,7 +15,7 @@ export default async function PaquetesResidentePage() {
     .from('apartamentos')
     .select('id, numero, torre')
     .eq('conjunto_id', perfil.conjunto_id)
-    .eq('residente_id', user.id)
+    .or(`residente_id.eq.${user.id},propietario_id.eq.${user.id}`)
     .single()
 
   const lista = apto ? await getMisPaquetes(supabase, perfil.conjunto_id, apto.id) : []

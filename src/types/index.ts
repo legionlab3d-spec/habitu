@@ -1,4 +1,4 @@
-export type Rol = 'admin' | 'residente'
+export type Rol = 'admin' | 'propietario' | 'residente'
 
 export interface Conjunto {
   id: string

@@ -9,13 +9,13 @@ export default async function ResidenteParqueaderosPage() {
   if (!user) redirect('/login')
 
   const perfil = await getUsuarioPerfil(supabase, user.id)
-  if (!perfil || perfil.rol !== 'residente') redirect('/dashboard')
+  if (!perfil || perfil.rol !== 'residente' && perfil.rol !== 'propietario') redirect('/dashboard')
 
   const { data: apto } = await supabase
     .from('apartamentos')
     .select('id')
     .eq('conjunto_id', perfil.conjunto_id)
-    .eq('residente_id', user.id)
+    .or(`residente_id.eq.${user.id},propietario_id.eq.${user.id}`)
     .single()
 
   const todos = await getParqueaderos(supabase, perfil.conjunto_id)
