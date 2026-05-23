@@ -1,7 +1,9 @@
 'use server'
 
 import { redirect } from 'next/navigation'
+import { revalidatePath } from 'next/cache'
 import { createClient } from '@/src/lib/supabase-server'
+import { getUsuarioPerfil } from '@/src/services/usuarios'
 
 function toSlug(text: string): string {
   return text
@@ -171,6 +173,66 @@ export async function registrarResidente(
     .update(esPropietario ? { propietario_id: userId } : { residente_id: userId })
     .eq('id', apartamento.id)
 
+  redirect('/dashboard/residente')
+}
+
+export async function vincularApartamento(
+  _state: { error: string } | undefined,
+  formData: FormData
+) {
+  const numero = (formData.get('numero') as string).trim()
+  const torre  = (formData.get('torre')  as string).trim() || null
+
+  if (!numero) return { error: 'El número de apartamento es obligatorio' }
+
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Sesión no encontrada' }
+
+  const perfil = await getUsuarioPerfil(supabase, user.id)
+  if (!perfil) return { error: 'Perfil no encontrado' }
+
+  // Buscar el apartamento en el conjunto del usuario
+  let q = supabase
+    .from('apartamentos')
+    .select('id, propietario_id, residente_id')
+    .eq('conjunto_id', perfil.conjunto_id)
+    .eq('numero', numero)
+
+  if (torre) {
+    q = q.eq('torre', torre)
+  } else {
+    q = q.is('torre', null)
+  }
+
+  const { data: aptos } = await q
+
+  if (!aptos || aptos.length === 0) {
+    return { error: torre
+      ? `Apartamento ${numero} Torre ${torre} no encontrado.`
+      : `Apartamento ${numero} no encontrado.`
+    }
+  }
+
+  const apto = aptos[0]
+  const esPropietario = perfil.rol === 'propietario'
+
+  if (esPropietario && apto.propietario_id && apto.propietario_id !== user.id) {
+    return { error: 'Este apartamento ya tiene un propietario registrado. Contacta al administrador.' }
+  }
+  if (!esPropietario && apto.residente_id && apto.residente_id !== user.id) {
+    return { error: 'Este apartamento ya tiene un arrendatario registrado. Contacta al administrador.' }
+  }
+
+  const campo = esPropietario ? { propietario_id: user.id } : { residente_id: user.id }
+  const { error } = await supabase
+    .from('apartamentos')
+    .update(campo)
+    .eq('id', apto.id)
+
+  if (error) return { error: 'Error al vincular el apartamento.' }
+
+  revalidatePath('/dashboard/residente')
   redirect('/dashboard/residente')
 }
 

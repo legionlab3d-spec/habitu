@@ -1,10 +1,11 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/src/lib/supabase-server'
-import { getUsuarioPerfil } from '@/src/services/usuarios'
+import { getUsuarioPerfil, getUsuariosSinApartamento } from '@/src/services/usuarios'
 import { getApartamentos } from '@/src/services/apartamentos'
 import { eliminarApartamento } from '@/app/actions/apartamentos'
 import ApartamentoForm from './_components/ApartamentoForm'
 import GenerarEstructuraForm from './_components/GenerarEstructuraForm'
+import AsignarUsuarioForm from './_components/AsignarUsuarioForm'
 
 export default async function ApartamentosPage() {
   const supabase = await createClient()
@@ -14,7 +15,10 @@ export default async function ApartamentosPage() {
   const perfil = await getUsuarioPerfil(supabase, user.id)
   if (!perfil || perfil.rol !== 'admin') redirect('/dashboard')
 
-  const apartamentos = await getApartamentos(supabase, perfil.conjunto_id)
+  const [apartamentos, sinApartamento] = await Promise.all([
+    getApartamentos(supabase, perfil.conjunto_id),
+    getUsuariosSinApartamento(supabase, perfil.conjunto_id),
+  ])
 
   // Agrupar por torre
   const porTorre = apartamentos.reduce<Record<string, typeof apartamentos>>(
@@ -62,12 +66,37 @@ export default async function ApartamentosPage() {
       </div>
 
       {/* Formulario agregar individual */}
-      <div className="bg-white border border-[#bec9c8] rounded-2xl p-5 mb-6">
+      <div className="bg-white border border-[#bec9c8] rounded-2xl p-5 mb-4">
         <h2 className="font-[family-name:var(--font-outfit)] text-sm font-semibold text-[#1b1c1c] mb-4">
           Agregar apartamento individual
         </h2>
         <ApartamentoForm />
       </div>
+
+      {/* Usuarios sin apartamento */}
+      {sinApartamento.length > 0 && (
+        <div className="bg-[#fff9db] border border-[#f59f00]/30 rounded-2xl p-5 mb-6">
+          <div className="flex items-start gap-3 mb-4">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e67700" strokeWidth="1.75" className="flex-shrink-0 mt-0.5">
+              <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+              <line x1="12" y1="9" x2="12" y2="13"/>
+              <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+            <div>
+              <h2 className="font-[family-name:var(--font-outfit)] text-sm font-semibold text-[#1b1c1c]">
+                {sinApartamento.length} usuario{sinApartamento.length > 1 ? 's' : ''} sin apartamento asignado
+              </h2>
+              <p className="text-xs text-[#6f7978] mt-0.5">
+                {sinApartamento.map((u) => u.nombre).join(', ')}
+              </p>
+            </div>
+          </div>
+          <AsignarUsuarioForm
+            usuarios={sinApartamento}
+            apartamentos={apartamentos.map((a) => ({ id: a.id, numero: a.numero, torre: a.torre }))}
+          />
+        </div>
+      )}
 
       {/* Lista */}
       {apartamentos.length === 0 ? (

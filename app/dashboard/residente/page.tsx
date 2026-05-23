@@ -4,6 +4,7 @@ import { createClient } from '@/src/lib/supabase-server'
 import { getUsuarioPerfil } from '@/src/services/usuarios'
 import { getResidenteDashboardData } from '@/src/services/dashboard'
 import { formatValor, formatPeriodo } from '@/src/services/cartera'
+import VincularApartamentoForm from './_components/VincularApartamentoForm'
 
 const ESTADO_ESTILOS = {
   pendiente: { border: 'border-[#f59f00]/40 bg-[#fff9db]/30', badge: 'bg-[#fff9db] text-[#e67700]', label: 'Pendiente' },
@@ -77,9 +78,14 @@ export default async function ResidenteDashboardPage() {
 
       {/* Estado de cuenta */}
       {!d.apartamento ? (
-        <div className="bg-[#f5f3f3] border border-[#bec9c8] rounded-2xl p-6 mb-5 text-center">
-          <p className="text-sm font-medium text-[#3f4948]">No tienes apartamento asignado.</p>
-          <p className="text-xs text-[#6f7978] mt-1">Contacta al administrador.</p>
+        <div className="bg-white border border-[#bec9c8] rounded-2xl p-5 mb-5">
+          <h2 className="font-[family-name:var(--font-outfit)] text-sm font-semibold text-[#1b1c1c] mb-1">
+            Vincula tu apartamento
+          </h2>
+          <p className="text-xs text-[#6f7978] mb-4">
+            Tu cuenta está activa pero aún no está asociada a un apartamento.
+          </p>
+          <VincularApartamentoForm rol={perfil.rol} />
         </div>
       ) : !ec ? (
         <div className="bg-[#f5f3f3] border border-[#bec9c8] rounded-2xl p-6 mb-5">

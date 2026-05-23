@@ -107,6 +107,63 @@ export async function generarEstructura(
   return { ok: true, creados: nuevos.length, omitidos }
 }
 
+export async function asignarUsuarioApartamento(
+  _state: unknown,
+  formData: FormData
+): Promise<{ ok?: boolean; error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autenticado' }
+
+  const perfil = await getUsuarioPerfil(supabase, user.id)
+  if (!perfil || perfil.rol !== 'admin') return { error: 'Sin permisos' }
+
+  const usuarioId   = formData.get('usuario_id') as string
+  const apartamentoId = formData.get('apartamento_id') as string
+
+  if (!usuarioId || !apartamentoId) return { error: 'Datos incompletos' }
+
+  // Verificar que el usuario pertenece al mismo conjunto
+  const { data: usuarioTarget } = await supabase
+    .from('usuarios')
+    .select('id, rol')
+    .eq('id', usuarioId)
+    .eq('conjunto_id', perfil.conjunto_id)
+    .single()
+
+  if (!usuarioTarget) return { error: 'Usuario no encontrado' }
+
+  // Verificar que el apartamento pertenece al conjunto
+  const { data: apto } = await supabase
+    .from('apartamentos')
+    .select('id, propietario_id, residente_id')
+    .eq('id', apartamentoId)
+    .eq('conjunto_id', perfil.conjunto_id)
+    .single()
+
+  if (!apto) return { error: 'Apartamento no encontrado' }
+
+  const esPropietario = usuarioTarget.rol === 'propietario'
+  const campo = esPropietario ? 'propietario_id' : 'residente_id'
+
+  if (esPropietario && apto.propietario_id && apto.propietario_id !== usuarioId) {
+    return { error: 'El apartamento ya tiene un propietario asignado.' }
+  }
+  if (!esPropietario && apto.residente_id && apto.residente_id !== usuarioId) {
+    return { error: 'El apartamento ya tiene un arrendatario asignado.' }
+  }
+
+  const { error } = await supabase
+    .from('apartamentos')
+    .update({ [campo]: usuarioId })
+    .eq('id', apartamentoId)
+
+  if (error) return { error: 'Error al asignar.' }
+
+  revalidatePath('/dashboard/admin/apartamentos')
+  return { ok: true }
+}
+
 export async function eliminarApartamento(id: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
