@@ -379,6 +379,11 @@ export default function Sidebar({ perfil, onClose }: SidebarProps) {
           <p className="text-xs text-white/50 mt-0.5 truncate">
             {(perfil.conjuntos as { nombre: string } | undefined)?.nombre ?? ''}
           </p>
+          {perfil.rol === 'admin' && (
+            <p className="text-[10px] text-white/30 font-mono mt-0.5 truncate" title={perfil.conjunto_id}>
+              {perfil.conjunto_id}
+            </p>
+          )}
         </div>
         {onClose && (
           <button

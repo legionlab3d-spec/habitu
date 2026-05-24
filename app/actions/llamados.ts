@@ -62,8 +62,10 @@ export async function actualizarEstadoLlamado(
   const perfil = await getUsuarioPerfil(supabase, user.id)
   if (!perfil || perfil.rol !== 'admin') return
 
+  const now = new Date().toISOString()
   const update: Record<string, unknown> = { estado }
-  if (estado === 'resuelto') update.fecha_resolucion = new Date().toISOString()
+  if (estado === 'en_proceso') update.fecha_en_proceso = now
+  if (estado === 'resuelto') update.fecha_resolucion = now
 
   await supabase
     .from('llamados_atencion')
@@ -72,4 +74,5 @@ export async function actualizarEstadoLlamado(
     .eq('conjunto_id', perfil.conjunto_id)
 
   revalidatePath('/dashboard/admin/llamados')
+  revalidatePath('/dashboard/residente/llamados')
 }

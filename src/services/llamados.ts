@@ -10,6 +10,7 @@ export interface LlamadoAtencion {
   evidencia_url: string | null
   estado: 'activo' | 'en_proceso' | 'resuelto' | 'archivado'
   respuesta_residente: string | null
+  fecha_en_proceso: string | null
   fecha_resolucion: string | null
   created_at: string
   updated_at: string
@@ -30,6 +31,14 @@ export const ESTADO_LLAMADO: Record<LlamadoAtencion['estado'], { label: string; 
   en_proceso:  { label: 'En proceso',  bg: 'bg-[#fff9db]', text: 'text-[#e67700]' },
   resuelto:    { label: 'Resuelto',    bg: 'bg-[#d3f9d8]', text: 'text-[#2f9e44]' },
   archivado:   { label: 'Archivado',   bg: 'bg-[#f5f3f3]', text: 'text-[#6f7978]' },
+}
+
+export function formatFechaHora(iso: string, short = false): string {
+  const d = new Date(iso)
+  if (short) {
+    return d.toLocaleString('es-CO', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+  }
+  return d.toLocaleString('es-CO', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 
 export async function getLlamados(

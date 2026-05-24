@@ -6,16 +6,17 @@ import {
   getLlamados,
   TIPO_LLAMADO,
   ESTADO_LLAMADO,
+  formatFechaHora,
 } from '@/src/services/llamados'
 import { actualizarEstadoLlamado } from '@/app/actions/llamados'
 import LlamadoForm from './_components/LlamadoForm'
 
 const FILTROS: { value: string; label: string }[] = [
-  { value: 'todos',     label: 'Todos' },
-  { value: 'activo',    label: 'Activo' },
-  { value: 'en_proceso',label: 'En proceso' },
-  { value: 'resuelto',  label: 'Resuelto' },
-  { value: 'archivado', label: 'Archivado' },
+  { value: 'todos',      label: 'Todos' },
+  { value: 'activo',     label: 'Activo' },
+  { value: 'en_proceso', label: 'En proceso' },
+  { value: 'resuelto',   label: 'Resuelto' },
+  { value: 'archivado',  label: 'Archivado' },
 ]
 
 export default async function LlamadosAdminPage({
@@ -38,7 +39,8 @@ export default async function LlamadosAdminPage({
     getApartamentos(supabase, perfil.conjunto_id),
   ])
 
-  const activos = lista.filter((l) => l.estado === 'activo' || l.estado === 'en_proceso').length
+  const activos  = lista.filter((l) => l.estado === 'activo').length
+  const proceso  = lista.filter((l) => l.estado === 'en_proceso').length
 
   return (
     <div className="p-4 sm:p-6 md:p-8 max-w-4xl">
@@ -47,7 +49,11 @@ export default async function LlamadosAdminPage({
         <h1 className="font-[family-name:var(--font-outfit)] text-2xl md:text-3xl font-bold text-[#1b1c1c]">
           Llamados de Atención
         </h1>
-        <p className="text-sm text-[#3f4948] mt-1">Gestiona llamados de atención a residentes</p>
+        <p className="text-sm text-[#3f4948] mt-1">
+          {activos + proceso > 0
+            ? `${activos + proceso} llamado${activos + proceso > 1 ? 's' : ''} pendiente${activos + proceso > 1 ? 's' : ''}`
+            : 'Sin llamados pendientes'}
+        </p>
       </div>
 
       {/* Nuevo llamado */}
@@ -71,9 +77,9 @@ export default async function LlamadosAdminPage({
             }`}
           >
             {f.label}
-            {f.value === 'todos' && activos > 0 && (
+            {f.value === 'todos' && (activos + proceso) > 0 && (
               <span className="ml-1.5 bg-[#ba1a1a] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-                {activos}
+                {activos + proceso}
               </span>
             )}
           </a>
@@ -86,29 +92,45 @@ export default async function LlamadosAdminPage({
           <p className="text-[#3f4948] text-sm font-medium">No hay llamados de atención para este filtro.</p>
         </div>
       ) : (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-3">
           {lista.map((l) => {
             const apto = l.apartamentos as { numero: string; torre: string | null } | undefined
             const creador = (l.creadores as { nombre: string } | undefined)?.nombre
             const estilo = ESTADO_LLAMADO[l.estado]
+
+            const timeline: { label: string; fecha: string; color: string }[] = [
+              { label: 'Creado', fecha: formatFechaHora(l.created_at), color: 'bg-[#004746]' },
+            ]
+            if (l.fecha_en_proceso) {
+              timeline.push({ label: 'En proceso', fecha: formatFechaHora(l.fecha_en_proceso), color: 'bg-[#e67700]' })
+            }
+            if (l.fecha_resolucion) {
+              timeline.push({ label: 'Resuelto', fecha: formatFechaHora(l.fecha_resolucion), color: 'bg-[#2f9e44]' })
+            }
+
             return (
               <div key={l.id} className="bg-white border border-[#bec9c8] rounded-2xl p-4">
-                <div className="flex items-start justify-between gap-4 flex-wrap">
+                {/* Header */}
+                <div className="flex items-start justify-between gap-4 flex-wrap mb-3">
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${estilo.bg} ${estilo.text}`}>
                         {estilo.label}
                       </span>
-                      <span className="text-[10px] text-[#6f7978]">{TIPO_LLAMADO[l.tipo]}</span>
+                      <span className="text-[10px] text-[#6f7978] bg-[#f5f3f3] px-2 py-0.5 rounded-full">
+                        {TIPO_LLAMADO[l.tipo]}
+                      </span>
                     </div>
                     <p className="text-sm font-semibold text-[#1b1c1c]">
                       {apto ? `Apto ${apto.numero}${apto.torre ? ` · Torre ${apto.torre}` : ''}` : '—'}
                     </p>
                     <p className="text-xs text-[#6f7978] mt-0.5 line-clamp-2">{l.descripcion}</p>
-                    <p className="text-xs text-[#6f7978] mt-0.5">
-                      Por: {creador ?? 'Administrador'} · {new Date(l.created_at).toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' })}
-                    </p>
+                    {creador && (
+                      <p className="text-[10px] text-[#6f7978] mt-1">Por: {creador}</p>
+                    )}
                   </div>
+
+                  {/* Acciones */}
                   <div className="flex gap-2 flex-shrink-0 flex-wrap">
                     {l.estado === 'activo' && (
                       <form action={async () => { 'use server'; await actualizarEstadoLlamado(l.id, 'en_proceso') }}>
@@ -131,6 +153,19 @@ export default async function LlamadosAdminPage({
                         </button>
                       </form>
                     )}
+                  </div>
+                </div>
+
+                {/* Timeline */}
+                <div className="border-t border-[#f5f3f3] pt-2.5">
+                  <div className="flex flex-col gap-1.5">
+                    {timeline.map((t, i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${t.color}`} />
+                        <span className="text-[10px] font-semibold text-[#3f4948] w-16 flex-shrink-0">{t.label}</span>
+                        <span className="text-[10px] text-[#6f7978]">{t.fecha}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>

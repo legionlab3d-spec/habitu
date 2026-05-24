@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/src/lib/supabase-server'
 import { getUsuarioPerfil } from '@/src/services/usuarios'
-import { getMisLlamados, TIPO_LLAMADO, ESTADO_LLAMADO } from '@/src/services/llamados'
+import { getMisLlamados, TIPO_LLAMADO, ESTADO_LLAMADO, formatFechaHora } from '@/src/services/llamados'
 
 export default async function LlamadosResidentePage() {
   const supabase = await createClient()
@@ -61,25 +61,39 @@ export default async function LlamadosResidentePage() {
         <div className="flex flex-col gap-3">
           {lista.map((l) => {
             const estilo = ESTADO_LLAMADO[l.estado]
+
+            const timeline: { label: string; fecha: string; color: string }[] = [
+              { label: 'Emitido', fecha: formatFechaHora(l.created_at), color: 'bg-[#004746]' },
+            ]
+            if (l.fecha_en_proceso) {
+              timeline.push({ label: 'En proceso', fecha: formatFechaHora(l.fecha_en_proceso), color: 'bg-[#e67700]' })
+            }
+            if (l.fecha_resolucion) {
+              timeline.push({ label: 'Resuelto', fecha: formatFechaHora(l.fecha_resolucion), color: 'bg-[#2f9e44]' })
+            }
+
             return (
               <div key={l.id} className="bg-white border border-[#bec9c8] rounded-2xl p-4">
-                <div className="flex items-start justify-between gap-3 mb-2 flex-wrap">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${estilo.bg} ${estilo.text}`}>
-                      {estilo.label}
-                    </span>
-                    <span className="text-[10px] text-[#6f7978]">{TIPO_LLAMADO[l.tipo]}</span>
-                  </div>
-                  <span className="text-xs text-[#6f7978]">
-                    {new Date(l.created_at).toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' })}
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${estilo.bg} ${estilo.text}`}>
+                    {estilo.label}
+                  </span>
+                  <span className="text-[10px] text-[#6f7978] bg-[#f5f3f3] px-2 py-0.5 rounded-full">
+                    {TIPO_LLAMADO[l.tipo]}
                   </span>
                 </div>
-                <p className="text-sm text-[#1b1c1c] whitespace-pre-line">{l.descripcion}</p>
-                {l.fecha_resolucion && (
-                  <p className="text-xs text-[#2f9e44] mt-2">
-                    Resuelto el {new Date(l.fecha_resolucion).toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })}
-                  </p>
-                )}
+                <p className="text-sm text-[#1b1c1c] whitespace-pre-line mb-3">{l.descripcion}</p>
+
+                {/* Timeline */}
+                <div className="border-t border-[#f5f3f3] pt-2.5 flex flex-col gap-1.5">
+                  {timeline.map((t, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${t.color}`} />
+                      <span className="text-[10px] font-semibold text-[#3f4948] w-16 flex-shrink-0">{t.label}</span>
+                      <span className="text-[10px] text-[#6f7978]">{t.fecha}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )
           })}

@@ -75,6 +75,17 @@ export default function PaqueteForm({ apartamentos }: Props) {
         </div>
       </div>
 
+      <div>
+        <label htmlFor="recibido_por_nombre" className="block text-xs font-semibold text-[#3f4948] uppercase tracking-wide mb-1.5">
+          Recibido por <span className="text-[#6f7978] font-normal normal-case">(portero o persona que lo recibió)</span>
+        </label>
+        <input
+          id="recibido_por_nombre" name="recibido_por_nombre" type="text"
+          placeholder="Ej: Portero Carlos, Recepción, Seguridad"
+          className="w-full h-10 px-3 bg-[#f5f3f3] border border-[#bec9c8] rounded-xl text-sm text-[#1b1c1c] placeholder-[#6f7978] focus:outline-none focus:ring-2 focus:ring-[#004746] focus:border-transparent"
+        />
+      </div>
+
       {state?.error && (
         <p className="text-sm text-[#ba1a1a] bg-[#ffdad6] px-3 py-2 rounded-xl">{state.error}</p>
       )}
