@@ -50,6 +50,21 @@ export interface ConfigCartera {
   link_pse: string | null
   link_banco: string | null
   instrucciones_pago: string | null
+  // Integración contable externa (fase 8)
+  sistema_contable: 'manual' | 'siigo' | 'helisa' | 'sisco' | 'world_office' | 'otro'
+  contable_api_url: string | null
+  contable_ultima_sync: string | null
+  contable_estado: 'no_configurado' | 'conectado' | 'error'
+}
+
+export interface PeriodoRecaudo {
+  periodo: string
+  pendiente: number
+  pagado: number
+  mora: number
+  total: number
+  valor_pagado: number
+  valor_pendiente: number
 }
 
 export interface StatsCartera {
@@ -177,4 +192,42 @@ export function formatPeriodo(periodo: string): string {
 
 export function formatValor(valor: number): string {
   return `$${valor.toLocaleString('es-CO')}`
+}
+
+export async function getHistoricoRecaudo(
+  supabase: SupabaseClient,
+  conjuntoId: string,
+  meses = 6
+): Promise<PeriodoRecaudo[]> {
+  // Calcular los últimos N períodos
+  const periodos: string[] = []
+  const now = new Date()
+  for (let i = meses - 1; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+    periodos.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
+  }
+
+  const { data } = await supabase
+    .from('estados_cuenta')
+    .select('periodo, estado, valor_total')
+    .eq('conjunto_id', conjuntoId)
+    .in('periodo', periodos)
+
+  const map = new Map<string, PeriodoRecaudo>()
+  for (const p of periodos) {
+    map.set(p, { periodo: p, pendiente: 0, pagado: 0, mora: 0, total: 0, valor_pagado: 0, valor_pendiente: 0 })
+  }
+
+  for (const row of data ?? []) {
+    const entry = map.get(row.periodo)
+    if (!entry) continue
+    entry.total++
+    if (row.estado === 'pagado')             { entry.pagado++;   entry.valor_pagado    += row.valor_total }
+    else if (row.estado === 'mora')          { entry.mora++;     entry.valor_pendiente += row.valor_total }
+    else if (row.estado === 'pendiente' || row.estado === 'parcial') {
+      entry.pendiente++; entry.valor_pendiente += row.valor_total
+    }
+  }
+
+  return periodos.map(p => map.get(p)!)
 }

@@ -102,17 +102,21 @@ export default async function AdminDashboardPage() {
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
-            { label: 'Pendientes', val: d.cartera_pendiente, color: 'text-[#e67700]' },
-            { label: 'En mora',    val: d.cartera_mora,      color: 'text-[#ba1a1a]' },
-            { label: 'Por recaudar', val: formatValor(d.cartera_valor_pendiente), color: 'text-[#e67700]', big: false },
-            { label: 'Recaudado',  val: formatValor(d.cartera_valor_recaudado),  color: 'text-[#2f9e44]', big: false },
+            { label: 'Pendientes',   val: d.cartera_pendiente,            color: 'text-[#e67700]', href: '/dashboard/admin/cartera?filtro=pendiente' },
+            { label: 'En mora',      val: d.cartera_mora,                 color: 'text-[#ba1a1a]', href: '/dashboard/admin/cartera?filtro=mora' },
+            { label: 'Por recaudar', val: formatValor(d.cartera_valor_pendiente), color: 'text-[#e67700]', big: false, href: '/dashboard/admin/cartera' },
+            { label: 'Recaudado',   val: formatValor(d.cartera_valor_recaudado),  color: 'text-[#2f9e44]', big: false, href: '/dashboard/admin/cartera?filtro=pagado' },
           ].map((s) => (
-            <div key={s.label} className="bg-[#f5f3f3] rounded-xl p-3">
+            <Link
+              key={s.label}
+              href={s.href}
+              className="bg-[#f5f3f3] rounded-xl p-3 hover:bg-[#edecea] transition-colors"
+            >
               <p className="text-[10px] font-semibold text-[#3f4948] uppercase tracking-wide mb-1">{s.label}</p>
               <p className={`font-[family-name:var(--font-outfit)] font-bold ${s.color} ${'big' in s && s.big === false ? 'text-base' : 'text-2xl'}`}>
                 {s.val}
               </p>
-            </div>
+            </Link>
           ))}
         </div>
       </div>
