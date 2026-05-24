@@ -380,9 +380,14 @@ export default function Sidebar({ perfil, onClose }: SidebarProps) {
             {(perfil.conjuntos as { nombre: string } | undefined)?.nombre ?? ''}
           </p>
           {perfil.rol === 'admin' && (
-            <p className="text-[10px] text-white/30 font-mono mt-0.5 truncate" title={perfil.conjunto_id}>
-              {perfil.conjunto_id}
-            </p>
+            <button
+              type="button"
+              onClick={() => navigator.clipboard.writeText(perfil.conjunto_id)}
+              className="text-[10px] text-white/30 hover:text-white/60 transition-colors mt-0.5 text-left"
+              title={perfil.conjunto_id}
+            >
+              Copiar ID conjunto
+            </button>
           )}
         </div>
         {onClose && (
